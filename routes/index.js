@@ -266,7 +266,6 @@ router.get("/logout",userMiddleware.isLoggedIn, (req, res)=>{
  * @access  Private
  */
 
-//change it to put
 router.post("/assignments",userMiddleware.isLoggedIn, (req, res)=>{
   // const {text, files, choice, full_marks, date} = req.body;
   // let ids = []
