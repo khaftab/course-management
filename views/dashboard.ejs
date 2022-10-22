@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/water.css@2/out/light.css">
+    <script src="//cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+</head>
+<body>
+    <%- include('partials/navbar'); -%>
+    <form action="/logout" method="get">
+        <input type="submit" value="Logout">
+    </form>
+    <hr>
+    <button id="create">Create Class</button>
+    <button id="join">Join Class</button>
+    <div>
+      <h3>Classes</h3>
+      <% classes.forEach(function(cls){ %>
+        <button style="width: 300px;font-size: 2rem;"><a href="/classes/<%= cls.class_code%>">  <%= cls.class_name.charAt(0).toUpperCase() + cls.class_name.slice(1) %></a></button>
+      <% }); %>
+      </div>
+
+
+    <script type="module">
+        import { v4 as uuidv4 } from 'https://jspm.dev/uuid';
+        const join = document.getElementById("join");
+        const create = document.getElementById("create");
+        join.addEventListener('click',()=>{
+            Swal.fire({
+              title: 'Enter class code',
+              input: 'text',
+              inputAttributes: {
+                autocapitalize: 'off'
+              },
+              inputValidator: (value) => {
+                if (!value) {
+                    return 'You need to write something!'
+                }
+              },
+              showCancelButton: true,
+              confirmButtonText: 'Join',
+              showLoaderOnConfirm: true,
+              preConfirm: async (class_code) => { 
+                try {
+                    const rawResponse = await fetch(`/classes/${class_code}`, {
+                    method: 'POST',
+                    body: JSON.stringify({class_code}),
+                    headers: {'Content-Type': 'application/json'}
+                 });
+                 return rawResponse.json();
+                } catch (error) {
+                    Swal.showValidationMessage(
+                        `Request failed: ${error}`
+                    )
+                }
+              },
+              allowOutsideClick: () => !Swal.isLoading()
+            }).then((result) => {
+              if (result.value.code === 'ER_DUP_ENTRY') {
+                Swal.fire({
+                  title: 'you are already in the class',
+                  icon: 'error'
+                }) 
+              }else if(result.value.err){
+                Swal.fire({
+                  title: result.value.err,
+                  icon: 'error'
+                }) 
+              }else{
+                Swal.fire({
+                  title: `joined`,
+                  icon: 'success',
+                  showConfirmButton: false,
+                  timer: 1500
+                }) 
+                location.reload();
+              }
+
+            })
+        })
+
+        create.addEventListener('click',()=>{
+            Swal.fire({
+              title: 'Class name',
+              input: 'text',
+              inputAttributes: {
+                autocapitalize: 'off'
+              },
+              showCancelButton: true,
+              confirmButtonText: 'Create',
+              showLoaderOnConfirm: true,
+              inputValidator: (value) => {
+                if (!value) {
+                    return 'You need to write something!'
+                }
+              },
+              preConfirm: async (class_name) => {
+                const class_code = uuidv4().split("-")[0];
+                const rawResponse = await fetch('/classes', {
+                    method: 'POST',
+                    body: JSON.stringify({class_code, class_name}),
+                    headers: {'Content-Type': 'application/json'}
+                 });
+                 const content = await rawResponse.json();
+                 return content;
+              },
+              allowOutsideClick: () => !Swal.isLoading()
+            }).then((result) => {
+              if (result.value.code === 'ER_DUP_ENTRY') {
+                Swal.fire({
+                  title: 'Duplicate class name cannot be created',
+                  icon: 'error'
+                }) 
+              }else{
+                Swal.fire({
+                  title: `Class code is ${result.value.class_code}`,
+                  icon: 'success',
+                  showConfirmButton: true,
+                }).then((res)=>{
+                  location.reload()
+                })
+              }
+            })
+        })
+
+    </script>
+
+</body>
+</html>

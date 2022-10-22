@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= class_name %></title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/water.css@2/out/light.css">
+    <script src="//cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <link href="https://unpkg.com/filepond/dist/filepond.css" rel="stylesheet" />
+    <link
+    href="https://unpkg.com/filepond-plugin-image-preview/dist/filepond-plugin-image-preview.css"
+    rel="stylesheet"/>
+    <style>
+        .modal {
+            position: fixed;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            opacity: 0;
+            visibility: hidden;
+            transform: scale(1.1);
+            transition: visibility 0s linear 0.25s, opacity 0.25s 0s, transform 0.25s;
+        }
+        .modal-content {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: white;
+            padding: 1rem;
+            width: 24rem;
+            border-radius: 0.5rem;
+            padding-bottom: 2.5rem;
+        }
+
+        .show-modal {
+            opacity: 1;
+            visibility: visible;
+            transform: scale(1.0);
+            transition: visibility 0s linear 0s, opacity 0.25s 0s, transform 0.25s;
+        }
+        #drag-drop-area{
+            margin-bottom: 20px;
+        }
+        .filepond--root {
+            max-height: 300px;
+        }
+    </style>
+</head>
+<body>
+    <%- include('partials/navbar'); -%>
+    <h1><%= class_name %></h1>
+
+    <p>Code: <em style="color:coral;"><%= class_code %></em> </p>
+    <%  if(is_teacher) {%>
+        <button id="create">Post</button>
+    <% }%>
+    <hr>
+    <h2>Assignment</h2>
+    <h3>Members</h3>
+    <hr>
+    <ul style="list-style-type: none;margin: 0;padding: 0;">
+    <% members.forEach(function(m){ %>
+        <li><img src=<%= m.avatar %> style="border-radius: 50%; height: 35px;vertical-align: middle;"> <%= `${m.first_name.charAt(0).toUpperCase() + m.first_name.slice(1)} ${m.last_name.charAt(0).toUpperCase() + m.last_name.slice(1)}` %>  <%  if(m.is_teacher) {%> <sup style="color:darkseagreen;border: 1px dashed ">Teacher</sup> <% }%></li>
+        <br>
+    <% }); %>
+    </ul>
+    <br>
+    <a href="/dashboard"> < Go back </a>
+
+
+    <div class="modal">
+        <form class="modal-content" action="/assignments" method="POST" id="uploadform">
+            <label for="text">Description:</label>
+            <textarea name="text" placeholder="# Heading 1" id="text" required></textarea>
+            <label for="drag-drop-area">Upload Files:</label>
+            <input type="file" name="files" id="drag-drop-area" multiple data-allow-reorder="true" data-max-file-size="3MB">
+            <label for="choice">Choose a type: </label>
+            <select name="choice" id="choice">
+                <option value="material">Material</option>
+                <option value="assignment">Assignment</option>
+            </select>
+            <div id="details">
+            </div>
+            <button type="button" class="close-button">Close</button>
+            <button type="submit" id="postbtn">Post</button>
+        </form>
+    </div>
+    <script src="https://unpkg.com/filepond-plugin-image-crop/dist/filepond-plugin-image-crop.js"></script>
+    <script src="https://unpkg.com/filepond-plugin-image-resize/dist/filepond-plugin-image-resize.js"></script>
+    <script src="https://unpkg.com/filepond-plugin-file-encode/dist/filepond-plugin-file-encode.js"></script>
+    <script src="https://unpkg.com/filepond-plugin-file-validate-size/dist/filepond-plugin-file-validate-size.js"></script>
+    <script src="https://unpkg.com/filepond-plugin-image-preview/dist/filepond-plugin-image-preview.js"></script>
+    <script src="https://unpkg.com/filepond/dist/filepond.js"></script>
+
+    <script>
+        
+        const createPost = document.getElementById("create");
+        const modal = document.querySelector(".modal");
+        const closeButton = document.querySelector(".close-button");
+        let choice = document.getElementById("choice");
+        let details = document.getElementById("details")
+        const inputElement = document.getElementById("drag-drop-area")
+        const uploadform = document.getElementById("uploadform");
+        FilePond.registerPlugin(
+            FilePondPluginFileEncode,
+            FilePondPluginImagePreview,
+            FilePondPluginFileValidateSize,
+            FilePondPluginImageResize,
+            FilePondPluginImageCrop
+        );
+        const pond = FilePond.create(inputElement);
+        pond.setOptions({
+            maxFiles: 10,
+            imageCropAspectRatio: '4:3',
+        });
+
+        choice.addEventListener('change',(e)=> {
+            if(e.target.value == 'assignment'){
+                details.innerHTML = `
+                <label for="full_marks">Enter Full Marks:</label>
+                <input type="number" name="full_marks" id="full_marks" value="100">
+                <label for="date">Due date: </label>
+                <input type="date" name="date" id="date" required>
+                `
+                var today = new Date().toISOString().split('T')[0];
+                document.getElementsByName("date")[0].setAttribute('min', today);
+            }else{
+                details.innerHTML = ""
+            }
+        })
+        
+        function toggleModal() {
+            modal.classList.toggle("show-modal");
+        }
+
+        uploadform.addEventListener("submit", (e) => {
+            uploadform.reset();
+        })
+
+        createPost.addEventListener("click", toggleModal);
+        closeButton.addEventListener("click", toggleModal);
+       
+        </script>
+</body>
+</html>
