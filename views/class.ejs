@@ -48,6 +48,50 @@
         .filepond--root {
             max-height: 300px;
         }
+        .assignments{
+            width: 240px;
+            height: 260px;
+            display: flex;
+            flex-direction: column;
+            background-color: rgb(235, 232, 232);
+            border-radius: 10px;
+        }
+        .file-download-btn {
+            border: 0.5px solid;
+            outline: 0;
+            display: inline-block;
+            color: rgb(50, 110, 230);
+            background-color: rgb(255, 255, 255);
+            text-align: center;
+            cursor: pointer;
+            width: 240px;
+            height: 90px;
+            font-size: 13px;
+            border-bottom-left-radius: 10px;
+            border-bottom-right-radius: 10px;
+        }
+        .file-download-btn:hover{
+            background-color: rgb(255, 255, 255);
+        }
+        .link{
+            display: inline-block;
+            width: 240px;
+            height: 260px;
+        }
+        .container{
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 10px;
+            border: 1px solid gray;
+            border-radius: 10px;
+            min-height: 300px;
+        }
+        .img{
+            border-top-left-radius: 10px;
+            border-top-right-radius: 10px;
+        }
     </style>
 </head>
 <body>
@@ -60,6 +104,25 @@
     <% }%>
     <hr>
     <h2>Assignment</h2>
+    <div class="container">
+    <% if(file_paths)  {%> 
+        <% file_paths.forEach(fp => { %>
+            <a href="<%= fp %>" download="<%= fp.substring(18) %>" class="link">
+            <% if(["jpeg","png","gif","svg", "jpg"].includes(fp.split('.').pop())) {%> 
+                <div class="assignments">
+                <img src=<%= fp %> style="width: 240px;height: 170px;" class="img">
+                <button type="button" class="file-download-btn"><%= fp.substring(18) %></button>
+            </div>
+            <% } else {%> 
+                <div class="assignments">
+                <img src="https://img.icons8.com/color/480/000000/file.png" style="width: 240px;height: 170px;"  class="img">
+                <button type="button" class="file-download-btn"><%= fp.substring(18) %></button>
+            </div>
+            <% } %> 
+            </a>
+        <%})%>
+    <% }%>
+    </div>
     <h3>Members</h3>
     <hr>
     <ul style="list-style-type: none;margin: 0;padding: 0;">
@@ -126,7 +189,7 @@
                 <label for="date">Due date: </label>
                 <input type="date" name="date" id="date" required>
                 `
-                var today = new Date().toISOString().split('T')[0];
+                let today = new Date().toISOString().split('T')[0];
                 document.getElementsByName("date")[0].setAttribute('min', today);
             }else{
                 details.innerHTML = ""
@@ -137,8 +200,8 @@
             modal.classList.toggle("show-modal");
         }
 
-        uploadform.addEventListener("submit", (e) => {
-            uploadform.reset();
+        uploadform.addEventListener("submit", async(e) => {
+            // e.preventDefault();
         })
 
         createPost.addEventListener("click", toggleModal);

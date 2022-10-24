@@ -29,10 +29,8 @@ CREATE TABLE enrollment(
 )
 
 CREATE TABLE files(
-    id varchar(50) not null,
-    file_name varchar(100) not null,
-    file_type varchar(40) not null,
-    file_data LONGBLOB NOT NULL,
+    id int not null auto_increment,
+    file_name varchar(255) not null,
     primary key(id)
 )
 

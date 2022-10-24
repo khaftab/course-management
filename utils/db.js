@@ -1,16 +1,16 @@
-var mysql      = require('mysql');
+var mysql = require("mysql");
 // DB setup
 var connection = mysql.createConnection({
-    host     : 'localhost',
-    user     : 'root',
-    password : 'thisisMySQL@root66',
-    multipleStatements: true
-  });
-   
-  connection.connect(function(err) {
-    if (err) throw err;
-    console.log("Connected!");
-    var sql = `
+  host: "localhost",
+  user: "root",
+  password: "thisisMySQL@root66",
+  multipleStatements: true,
+});
+
+connection.connect(function (err) {
+  if (err) throw err;
+  console.log("Connected!");
+  var sql = `
     CREATE DATABASE IF NOT EXISTS course_management;
     USE course_management;
     CREATE TABLE if not exists users(
@@ -39,13 +39,10 @@ var connection = mysql.createConnection({
     primary key(id),
     CONSTRAINT UC_enrollment UNIQUE(user_id, class_id)
  )`;
-    connection.query(sql, function (err, result) {
-      if (err) throw err;
-      console.log("Tables created");
-    });
+  connection.query(sql, function (err, result) {
+    if (err) throw err;
+    console.log("Tables created");
   });
+});
 
-  module.exports = connection;
-
-
-
+module.exports = connection;
