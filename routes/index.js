@@ -332,16 +332,14 @@ router.get("/assignments", userMiddleware.isLoggedIn, async (req, res) => {
     })
     .then((rows) => {
       let test = []
-      rows.forEach(async (row) => {
-        let sql = `SELECT file_name FROM assignment_files WHERE assignment_id = ${row.assignment_id}`;
+      for (let i = 0; i < rows.length; i++) {
+        let sql = `SELECT file_name FROM assignment_files WHERE assignment_id = ${rows[i].assignment_id}`;
         let results = await db.promise().query(sql)
-        row.files = results[0];
-        // console.log(results[0])
-        // row.files = JSON.stringify(files);
-        // console.log(row)
-        test.push(row)
-      });
-      console.log(test)
+        let filenames = results[0].map(r => r.file_name)
+        rows[i].files = filenames
+        test.push(rows[i])
+      }
+      return res.json(test)
       // console.log(rows)
       // return rows;
     })
