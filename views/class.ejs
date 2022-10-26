@@ -103,7 +103,7 @@
         <button id="create">Post</button>
     <% }%>
     <hr>
-    <h2>Assignment</h2>
+    <h2>Assignments</h2>
     <div class="container">
     <% if(file_paths)  {%> 
         <% file_paths.forEach(fp => { %>
@@ -160,6 +160,10 @@
     <script src="https://unpkg.com/filepond/dist/filepond.js"></script>
 
     <script>
+            fetch("/assignments")
+            .then(res => res.json())
+            .then(res => console.log(res))
+
         
         const createPost = document.getElementById("create");
         const modal = document.querySelector(".modal");

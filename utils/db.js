@@ -1,4 +1,4 @@
-var mysql = require("mysql");
+var mysql = require("mysql2");
 // DB setup
 var connection = mysql.createConnection({
   host: "localhost",
@@ -27,7 +27,7 @@ connection.connect(function (err) {
     CREATE TABLE if not exists classes(
       id int not null auto_increment,
       class_name varchar(100) not null unique,
-      class_code varchar(10) not null,
+      class_code varchar(10) not null unique,
       primary key(id) 
    );
    CREATE TABLE if not exists enrollment(
@@ -44,5 +44,6 @@ connection.connect(function (err) {
     console.log("Tables created");
   });
 });
+
 
 module.exports = connection;

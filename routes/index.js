@@ -5,11 +5,10 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const { faker } = require("@faker-js/faker");
 const fs = require("fs");
-const { marked } = require('marked');
+const { marked } = require("marked");
 const db = require(".././utils/db.js");
 const userMiddleware = require("../middleware/users.js");
 const maxAge = 3 * 24 * 60 * 60;
-
 
 /* GET home page. */
 router.get("/", function (req, res, next) {
@@ -214,7 +213,6 @@ router.post("/classes/:id", userMiddleware.isLoggedIn, (req, res) => {
   )};`;
 
   db.query(sql, (err, result) => {
-    console.log(result.length);
     if (err) return res.json({ code: err.code });
     if (result.length) {
       const { class_code, class_name, id } = result[0];
@@ -250,6 +248,7 @@ router.get("/classes/:id", userMiddleware.isLoggedIn, (req, res) => {
   let sql = `SELECT * FROM classes WHERE class_code = ${db.escape(
     req.params.id
   )};`;
+
   db.query(sql, (err, result) => {
     if (err) throw err;
     if (result.length) {
@@ -271,7 +270,7 @@ router.get("/classes/:id", userMiddleware.isLoggedIn, (req, res) => {
             class_code: result[0].class_code,
             members,
             is_teacher,
-            file_paths: app.locals.file_paths
+            file_paths: app.locals.file_paths,
           });
         }
       });
@@ -287,28 +286,102 @@ router.get("/classes/:id", userMiddleware.isLoggedIn, (req, res) => {
 
 router.post("/assignments", userMiddleware.isLoggedIn, (req, res) => {
   const { text, files, choice, full_marks, date } = req.body;
-  const html = marked.parse(text);
-  if (Array.isArray(files)) {
-    let file_paths = [];
-    files.forEach(async (file) => {
-      const { id, name, data } = JSON.parse(file);
-      let filename = `${id}${name}`;
-      urltoFile(`${data}`, `${filename}`);
-      let file_path = `/uploads/${filename}`;
-      file_paths.push(file_path);
+  // const html = marked.parse(text);
+  let html = text;
+  if (choice == "assignment") {
+    let sql = `INSERT INTO assignments(info, class_code, due_date, posted_on, user_id, full_marks, obtained_marks) VALUES(${db.escape(
+      html
+    )},"${app.locals.class_code}","${date}","${new Date()
+      .toISOString()
+      .slice(0, 10)}",${req.userData.userId},${full_marks},${0});`;
+    db.query(sql, (err, result) => {
+      if (err) throw err;
+      let assignment_id = result.insertId;
+      uploadFiles(files, assignment_id);
     });
-    app.locals.file_paths = file_paths;
-    res.redirect(`back`)
   } else {
-    const { id, name, data } = JSON.parse(files);
-    let filename = `${id}${name}`;
-    urltoFile(`${data}`, `${filename}`);
-    app.locals.file_paths = [`/uploads/${filename}`]
-    res.redirect(`back`)
+    let sql = `INSERT INTO materials(info, class_code, user_id, posted_on) VALUES(${db.escape(
+      html
+    )},"${app.locals.class_code}",${req.userData.userId},"${new Date()
+      .toISOString()
+      .slice(0, 10)}");`;
+    db.query(sql, (err, result) => {
+      if (err) throw err;
+      let material_id = result.insertId;
+      uploadFiles(files, null, material_id);
+    });
   }
 });
 
-function urltoFile(data, filename) {
+/**
+ * @route   GET /assignments
+ * @desc    GET all assignments
+ * @access  Private
+ */
+router.get("/assignments", userMiddleware.isLoggedIn, async (req, res) => {
+  let sql = `select u.first_name, u.last_name, u.avatar,a.id as assignment_id, a.posted_on, a.full_marks, a.obtained_marks FROM users u JOIN assignments a ON u.id = a.user_id;`;
+  // db.query(sql, (err, results) => {
+  //   if (err) throw err;
+  // results = Object.values(JSON.parse(JSON.stringify(results)));
+  // });
+  db.promise()
+    .query(sql)
+    .then(([rows, fields]) => {
+      console.log(rows)
+      return Object.values(JSON.parse(JSON.stringify(rows)));
+    })
+    .then((rows) => {
+      let test = []
+      rows.forEach(async (row) => {
+        let sql = `SELECT file_name FROM assignment_files WHERE assignment_id = ${row.assignment_id}`;
+        let results = await db.promise().query(sql)
+        row.files = results[0];
+        // console.log(results[0])
+        // row.files = JSON.stringify(files);
+        // console.log(row)
+        test.push(row)
+      });
+      console.log(test)
+      // console.log(rows)
+      // return rows;
+    })
+    .then((rows) => {
+      // console.log(rows);
+    })
+    .catch(console.log("Err occured"))
+});
+
+function uploadFiles(files, assignment_id = null, material_id = null) {
+  if (Array.isArray(files)) {
+    files.forEach((file) => {
+      const { id, name, data } = JSON.parse(file);
+      let filename = `${id}${name}`;
+      base64toFile(`${data}`, `${filename}`);
+      insertIntoFileDB(filename, assignment_id, material_id);
+    });
+  } else {
+    const { id, name, data } = JSON.parse(files);
+    let filename = `${id}${name}`;
+    base64toFile(`${data}`, `${filename}`);
+    insertIntoFileDB(filename, assignment_id, material_id);
+  }
+}
+
+function insertIntoFileDB(filename, assignment_id, material_id) {
+  if (assignment_id) {
+    let sql = `INSERT INTO assignment_files(file_name, assignment_id) VALUES("${filename}",${assignment_id});`;
+    db.query(sql, (err, result) => {
+      if (err) throw err;
+    });
+  } else {
+    let sql = `INSERT INTO material_files(file_name, material_id) VALUES("${filename}",${material_id});`;
+    db.query(sql, (err, result) => {
+      if (err) throw err;
+    });
+  }
+}
+
+function base64toFile(data, filename) {
   let buff = Buffer.from(data, "base64");
   let dir = "./public/uploads";
 
