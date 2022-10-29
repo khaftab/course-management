@@ -9,6 +9,7 @@ const { marked } = require("marked");
 const db = require(".././utils/db.js");
 const userMiddleware = require("../middleware/users.js");
 const maxAge = 3 * 24 * 60 * 60;
+const dayjs = require('dayjs')
 
 /* GET home page. */
 router.get("/", function (req, res, next) {
@@ -285,32 +286,29 @@ router.get("/classes/:id", userMiddleware.isLoggedIn, (req, res) => {
  */
 
 router.post("/assignments", userMiddleware.isLoggedIn, (req, res) => {
+  console.log(app.locals)
   const { text, files, choice, full_marks, date } = req.body;
-  // const html = marked.parse(text);
-  let html = text;
+  const html = marked.parse(text);
   if (choice == "assignment") {
-    let sql = `INSERT INTO assignments(info, class_code, due_date, posted_on, user_id, full_marks, obtained_marks) VALUES(${db.escape(
+    let sql = `INSERT INTO assignments(info, class_code, due_date, user_id, full_marks) VALUES(${db.escape(
       html
-    )},"${app.locals.class_code}","${date}","${new Date()
-      .toISOString()
-      .slice(0, 10)}",${req.userData.userId},${full_marks},${0});`;
+    )},"${app.locals.class_code}","${date}",${req.userData.userId},${full_marks});`;
     db.query(sql, (err, result) => {
       if (err) throw err;
       let assignment_id = result.insertId;
       uploadFiles(files, assignment_id);
     });
   } else {
-    let sql = `INSERT INTO materials(info, class_code, user_id, posted_on) VALUES(${db.escape(
+    let sql = `INSERT INTO materials(info, class_code, user_id) VALUES(${db.escape(
       html
-    )},"${app.locals.class_code}",${req.userData.userId},"${new Date()
-      .toISOString()
-      .slice(0, 10)}");`;
+    )},"${app.locals.class_code}",${req.userData.userId});`;
     db.query(sql, (err, result) => {
       if (err) throw err;
       let material_id = result.insertId;
       uploadFiles(files, null, material_id);
     });
   }
+  res.redirect("back");
 });
 
 /**
@@ -319,36 +317,187 @@ router.post("/assignments", userMiddleware.isLoggedIn, (req, res) => {
  * @access  Private
  */
 router.get("/assignments", userMiddleware.isLoggedIn, async (req, res) => {
-  let sql = `select u.first_name, u.last_name, u.avatar,a.id as assignment_id, a.posted_on, a.full_marks, a.obtained_marks FROM users u JOIN assignments a ON u.id = a.user_id;`;
-  // db.query(sql, (err, results) => {
-  //   if (err) throw err;
-  // results = Object.values(JSON.parse(JSON.stringify(results)));
-  // });
+  let sql = `select u.first_name, u.last_name, u.avatar,a.info, a.id as assignment_id, UNIX_TIMESTAMP(a.posted_on) as DATE, a.full_marks 
+             FROM users u JOIN assignments a 
+             ON u.id = a.user_id and a.class_code="${app.locals.class_code}"
+             ORDER BY DATE DESC;`;
   db.promise()
     .query(sql)
     .then(([rows, fields]) => {
-      console.log(rows)
       return Object.values(JSON.parse(JSON.stringify(rows)));
     })
-    .then((rows) => {
-      let test = []
-      rows.forEach(async (row) => {
-        let sql = `SELECT file_name FROM assignment_files WHERE assignment_id = ${row.assignment_id}`;
-        let results = await db.promise().query(sql)
-        row.files = results[0];
-        // console.log(results[0])
-        // row.files = JSON.stringify(files);
-        // console.log(row)
-        test.push(row)
-      });
-      console.log(test)
+    .then(async (rows) => {
+      // let assignments = []
+      for (let i = 0; i < rows.length; i++) {
+        let sql = `SELECT file_name FROM assignment_files WHERE assignment_id = ${rows[i].assignment_id}`;
+        let results = await db.promise().query(sql);
+        let filenames = results[0].map((r) => r.file_name);
+        rows[i].files = filenames;
+        // assignments.push(rows[i])
+      }
       // console.log(rows)
-      // return rows;
+      return res.json(rows);
     })
-    .then((rows) => {
+    .catch((e)=>{
+      console.log(e)
+    });
+});
+
+/**
+ * @route   GET /materials
+ * @desc    GET all materials
+ * @access  Private
+ */
+router.get("/materials", userMiddleware.isLoggedIn, (req, res) => {
+  let sql = `select u.first_name, u.last_name, u.avatar,m.id,m.info, m.posted_on FROM users u JOIN materials m ON u.id = m.user_id and m.class_code="${app.locals.class_code}" ORDER BY UNIX_TIMESTAMP(m.posted_on) DESC;`;
+  db.promise()
+    .query(sql)
+    .then(([rows, fields]) => {
+      return rows;
+    })
+    .then(async (rows) => {
+      for (let i = 0; i < rows.length; i++) {
+        let sql = `SELECT file_name FROM material_files WHERE material_id = ${rows[i].id}`;
+        let results = await db.promise().query(sql);
+        let filenames = results[0].map((r) => r.file_name);
+        rows[i].files = filenames;
+        // materials.push(rows[i])
+      }
+      return res.json(rows);
+    })
+    .catch((e)=>{
+      console.log(e)
+    });
+});
+
+/**
+ * @route   GET /assignments/:id
+ * @desc    GET  assignment by ID
+ * @access  Private
+ */
+router.get("/assignments/:id", userMiddleware.isLoggedIn, async (req, res) => {
+  let sql = `SELECT * from assignments WHERE id = ${req.params.id}`;
+  let assignment;
+  await db
+    .promise()
+    .query(sql)
+    .then(([rows, fields]) => {
+      assignment = rows[0];
+    })
+    .catch((e) => {
+      console.log(e);
+    });
+  
+  const { id, info, due_date, full_marks } = assignment;
+  sql = `SELECT obtained_marks FROM submissions WHERE user_id=${req.userData.userId} and assignment_id=${req.params.id}`;
+  await db.promise()
+    .query(sql)
+    .then(([rows, fields]) => {
+      console.log(rows)
+      res.render("assignment", {
+        id,
+        info,
+        due_date: dayjs(due_date) ,
+        full_marks,
+        obtained_marks: rows.length? rows[0].obtained_marks: 0
+      });
+    }).catch((e) => {
+      console.log(e);
+    });
+});
+
+/**
+ * @route   POST /assignments/:id/submissions
+ * @desc    POST  a file to an assignment
+ * @access  Private
+ */
+router.post(
+  "/assignments/:id/submissions",
+  userMiddleware.isLoggedIn,
+  (req, res) => {
+    const { id, name, data } = JSON.parse(req.body.files);
+    let filename = `${id}${name}`;
+    console.log(filename);
+    let sql = `INSERT INTO submissions(assignment_id, user_id, file_name) VALUES(${req.params.id},${req.userData.userId},"${filename}");`;
+    db.promise()
+      .query(sql)
+      .then(([rows, fields]) => {
+        base64toFile(`${data}`, `${filename}`);
+        res.redirect("back");
+      })
+      .catch((e) => {
+        console.log(e.code);
+        res.send(`<script>alert("you have already submitted your work!"); window.location.href = "/assignments/${req.params.id}"; </script>`)
+      });
+  }
+);
+
+/**
+ * @route   GET /assignments/:id/submissions
+ * @desc    GET  all submissions with id
+ * @access  Private
+ */
+router.get(
+  "/assignments/:id/submissions",
+  userMiddleware.isLoggedIn,
+  async (req, res) => {
+    app.locals.assignment_id = req.params.id
+    let user = {};
+    let sql = `SELECT first_name, avatar FROM users WHERE id=${req.userData.userId};`;
+    await db
+      .promise()
+      .query(sql)
+      .then(([rows, fields]) => {
+        return rows[0];
+      })
+      .then((result) => {
+        user.first_name = `${result.first_name}`;
+        user.avatar = result.avatar;
+      })
+      .catch((e) => {
+        console.error(e.message); // "oh, no!"
+      });
+
+    sql = `select u.id,u.first_name, u.last_name, u.avatar, s.file_name, a.full_marks,s.obtained_marks, a.due_date
+          FROM users u 
+          JOIN submissions s
+          ON u.id = s.user_id 
+          JOIN assignments a
+          ON a.id = s.assignment_id
+          and s.assignment_id=${req.params.id}`;
+
+    await db
+      .promise()
+      .query(sql)
+      .then(([rows, fields]) => {
+        console.log(rows.length)
+        if(rows.length){
+          res.render("submissions", { rows, due_date: dayjs(rows[0].due_date) });
+        }else{
+          res.render("submissions", { rows , due_date: null});
+        }
+      })
+      .catch((e) => {
+        console.error(e.message); // "oh, no!"
+      });
+  }
+);
+
+router.put("/assignments/update", userMiddleware.isLoggedIn, (req, res) => {
+  let sql = `UPDATE submissions
+  SET obtained_marks = ${req.body.grade}
+  WHERE user_id = ${req.body.userId} AND assignment_id=${app.locals.assignment_id};`;
+  db.promise()
+    .query(sql)
+    .then(([rows, fields]) => {
       // console.log(rows);
+      res.json({
+        msg: "success",
+      });
     })
-    .catch(console.log("Err occured"))
+    .catch((e) => {
+      console.error(e); // "oh, no!"
+    });
 });
 
 function uploadFiles(files, assignment_id = null, material_id = null) {

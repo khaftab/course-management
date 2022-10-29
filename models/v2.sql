@@ -48,22 +48,20 @@ CREATE TABLE assignments(
    id int not null AUTO_INCREMENT,
    info text,
    class_code varchar(10) not null, 
-   due_date timestamp not null,
-   posted_on timestamp not null,
+   due_date datetime not null,
+   posted_on datetime default now(),
    user_id int not null,
    full_marks smallint not null,
-   obtained_marks decimal(4,2) not null,
    FOREIGN KEY (user_id) REFERENCES users(id),
    FOREIGN KEY (class_code) REFERENCES classes(class_code),
    primary key(id)
 )
-SELECT ID, class_code,due_date,posted_on,USER_ID,full_marks,obtained_marks FROM assignments;
 CREATE TABLE materials(
    id int not null AUTO_INCREMENT,
    info text,
    class_code varchar(10) not null, 
    user_id int not null,
-   posted_on timestamp not null,
+   posted_on datetime default now(),
    FOREIGN KEY (user_id) REFERENCES users(id),
    FOREIGN kEY (class_code) REFERENCES classes(class_code),
    primary key(id)
@@ -75,49 +73,26 @@ CREATE TABLE submissions(
    assignment_id int not null,
    user_id int not null,
    file_name varchar(255),
-   obtained_marks decimal(10,2) default 0.00,
+   obtained_marks decimal(10,2),
    FOREIGN KEY (user_id) REFERENCES users(id),
    FOREIGN KEY (assignment_id) REFERENCES assignments(id),
    CONSTRAINT UC_submission UNIQUE(assignment_id, user_id)
 )
 
 SELECT ID, class_code,user_id,posted_on FROM materials;
-4 -> 10
-add marks_given column in submission
+SELECT ID, class_code,due_date,posted_on,USER_ID,full_marks FROM assignments;
 
 DELETE FROM assignment_files;
 DELETE FROM material_files;
 DELETE FROM assignments;
 DELETE FROM materials;
 
+DROP TABLE users;
+DROP TABLE classes;
+DROP TABLE enrollment;
 DROP TABLE assignment_files;
 DROP TABLE material_files;
+DROP TABLE submissions;
 DROP TABLE assignments;
 DROP TABLE materials;
 
-SELECT users.id, first_name, is_teacher, classes.class_code, classes.class_name, a.info, af.file_name 
-FROM  users   
-JOIN enrollment   
-ON users.id = enrollment.user_id   
-JOIN classes   
-ON classes.id = enrollment.class_id AND classes.class_code = '5c9a355d'
-JOIN assignments a
-ON a.class_code = classes.class_code
-JOIN assignment_files af
-ON af.assignment_id = a.id AND a.class_code='5c9a355d';
-
-
- 
-
-
-SELECT a.info, a.due_date, a.posted_on, a.full_marks, a.user_id as posted_by,af.file_name
-from assignments a 
-JOIN assignment_files af 
-   ON af.assignment_id = a.id AND a.class_code='5c9a355d';
-
-
-  // let sql = `
-  // SELECT a.info,a.due_date,a.posted_on,a.full_marks,a.user_id as posted_by,af.file_name
-  // from assignments a 
-  // JOIN assignment_files af 
-  //    ON af.assignment_id = a.id AND a.class_code="${app.locals.class_code}";`

@@ -7,11 +7,25 @@
     <title><%= class_name %></title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/water.css@2/out/light.css">
     <script src="//cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <link href="https://unpkg.com/filepond/dist/filepond.css" rel="stylesheet" />
-    <link
-    href="https://unpkg.com/filepond-plugin-image-preview/dist/filepond-plugin-image-preview.css"
-    rel="stylesheet"/>
+    <link href="/stylesheets/filepond.css" rel="stylesheet" />
+    <link href="/stylesheets/filepond-plugin-image-preview.css" rel="stylesheet" />
+    <link rel="stylesheet" href="/stylesheets/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/dayjs@1/dayjs.min.js"></script>
+
     <style>
+        /* partial nav */
+        #nav{
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .profile h2{
+            margin-top: 2px;
+        }
+        #logout{
+            background-color: rgb(140, 255, 192);
+        }
+        /* end of nav partial */
         .modal {
             position: fixed;
             left: 0;
@@ -48,82 +62,52 @@
         .filepond--root {
             max-height: 300px;
         }
-        .assignments{
-            width: 240px;
-            height: 260px;
-            display: flex;
-            flex-direction: column;
-            background-color: rgb(235, 232, 232);
-            border-radius: 10px;
+        mark {
+            margin: 0 -0.4em;
+            padding: 0.1em 0.4em;
+            border-radius: 0.8em 0.3em;
+            background: transparent;
+            background-image: linear-gradient(
+                to right,
+                rgba(30, 131, 47, 0.1),
+                rgba(153, 244, 170, 0.7) 4%,
+                rgba(179, 255, 190, 0.3)
+            );
+            -webkit-box-decoration-break: clone;
+            box-decoration-break: clone;
         }
-        .file-download-btn {
-            border: 0.5px solid;
-            outline: 0;
-            display: inline-block;
-            color: rgb(50, 110, 230);
-            background-color: rgb(255, 255, 255);
-            text-align: center;
-            cursor: pointer;
-            width: 240px;
-            height: 90px;
-            font-size: 13px;
-            border-bottom-left-radius: 10px;
-            border-bottom-right-radius: 10px;
+        #create{
+            background-color: rgb(149, 255, 184);
         }
-        .file-download-btn:hover{
-            background-color: rgb(255, 255, 255);
-        }
-        .link{
-            display: inline-block;
-            width: 240px;
-            height: 260px;
-        }
-        .container{
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-wrap: wrap;
-            gap: 10px;
-            border: 1px solid gray;
-            border-radius: 10px;
-            min-height: 300px;
-        }
-        .img{
-            border-top-left-radius: 10px;
-            border-top-right-radius: 10px;
+        #postbtn, #back-btn{
+            background-color: rgb(140, 255, 192);
         }
     </style>
 </head>
 <body>
     <%- include('partials/navbar'); -%>
-    <h1><%= class_name %></h1>
-
-    <p>Code: <em style="color:coral;"><%= class_code %></em> </p>
+    <h1><mark><%= class_name %></mark></h1>
+    <p>Class Code: <em style="color:coral;"><%= class_code %></em> </p>
     <%  if(is_teacher) {%>
-        <button id="create">Post</button>
-    <% }%>
+        <button id="create">Post assignment / material</button>
+        <script>
+            let is_teacher = true;            
+        </script>
+    <% }else {%>
+        <script>
+         is_teacher = false;            
+        </script>
+        <% } %> 
     <hr>
-    <h2>Assignments</h2>
-    <div class="container">
-    <% if(file_paths)  {%> 
-        <% file_paths.forEach(fp => { %>
-            <a href="<%= fp %>" download="<%= fp.substring(18) %>" class="link">
-            <% if(["jpeg","png","gif","svg", "jpg"].includes(fp.split('.').pop())) {%> 
-                <div class="assignments">
-                <img src=<%= fp %> style="width: 240px;height: 170px;" class="img">
-                <button type="button" class="file-download-btn"><%= fp.substring(18) %></button>
-            </div>
-            <% } else {%> 
-                <div class="assignments">
-                <img src="https://img.icons8.com/color/480/000000/file.png" style="width: 240px;height: 170px;"  class="img">
-                <button type="button" class="file-download-btn"><%= fp.substring(18) %></button>
-            </div>
-            <% } %> 
-            </a>
-        <%})%>
-    <% }%>
+    <!-- <h2>Assignments / Materials</h2> -->
+    <select name="am" id="am">
+        <option value="assignment">Assignment</option>
+        <option value="material">Material</option>
+    </select>
+    <br>
+    <div class="container-main">
     </div>
-    <h3>Members</h3>
+    <h3><mark>Members</mark></h3>
     <hr>
     <ul style="list-style-type: none;margin: 0;padding: 0;">
     <% members.forEach(function(m){ %>
@@ -132,7 +116,7 @@
     <% }); %>
     </ul>
     <br>
-    <a href="/dashboard"> < Go back </a>
+    <a href="/dashboard"><button id="back-btn">< Go back</button></a>
 
 
     <div class="modal">
@@ -140,7 +124,7 @@
             <label for="text">Description:</label>
             <textarea name="text" placeholder="# Heading 1" id="text" required></textarea>
             <label for="drag-drop-area">Upload Files:</label>
-            <input type="file" name="files" id="drag-drop-area" multiple data-allow-reorder="true" data-max-file-size="3MB">
+            <input required type="file" name="files" id="drag-drop-area" multiple data-allow-reorder="true" data-max-file-size="5MB">
             <label for="choice">Choose a type: </label>
             <select name="choice" id="choice">
                 <option value="material">Material</option>
@@ -151,20 +135,15 @@
             <button type="button" class="close-button">Close</button>
             <button type="submit" id="postbtn">Post</button>
         </form>
-    </div>
-    <script src="https://unpkg.com/filepond-plugin-image-crop/dist/filepond-plugin-image-crop.js"></script>
-    <script src="https://unpkg.com/filepond-plugin-image-resize/dist/filepond-plugin-image-resize.js"></script>
-    <script src="https://unpkg.com/filepond-plugin-file-encode/dist/filepond-plugin-file-encode.js"></script>
-    <script src="https://unpkg.com/filepond-plugin-file-validate-size/dist/filepond-plugin-file-validate-size.js"></script>
-    <script src="https://unpkg.com/filepond-plugin-image-preview/dist/filepond-plugin-image-preview.js"></script>
-    <script src="https://unpkg.com/filepond/dist/filepond.js"></script>
+    </div>    
+    <script src="/javascripts/filepond-plugin-image-resize.min.js"></script>
+    <script src="/javascripts/filepond-plugin-file-encode.min.js"></script>
+    <script src="/javascripts/filepond-plugin-image-crop.min.js"></script>
+    <script src="/javascripts/filepond-plugin-file-validate-size.min.js"></script>
+    <script src="/javascripts/filepond-plugin-image-preview.min.js"></script>
+    <script src="/javascripts/filepond.min.js"></script>
 
     <script>
-            fetch("/assignments")
-            .then(res => res.json())
-            .then(res => console.log(res))
-
-        
         const createPost = document.getElementById("create");
         const modal = document.querySelector(".modal");
         const closeButton = document.querySelector(".close-button");
@@ -172,6 +151,66 @@
         let details = document.getElementById("details")
         const inputElement = document.getElementById("drag-drop-area")
         const uploadform = document.getElementById("uploadform");
+        const container = document.getElementsByClassName("container-main")[0]
+        const am = document.getElementById('am');
+
+        function loadAssignment(){
+            fetch("/assignments")
+            .then(res => res.json())
+            .then(assignments => {
+                container.innerHTML = ""
+                assignments.forEach((assignment)=>{
+                container.innerHTML += `
+                <article class="container-sub">
+                <div class="container-top">
+                    <div class="avatar">
+                        <img src="${assignment.avatar}" style="border-radius: 50%; height: 35px;">
+                        <h5>Posted by <mark>${assignment.first_name.charAt(0).toUpperCase() + assignment.first_name.slice(1)} ${assignment.last_name.charAt(0).toUpperCase() + assignment.last_name.slice(1)}</mark></h5>
+                    </div>
+                    <div class="marks-details">
+                        <p>Full Marks: <strong>${assignment.full_marks}</strong></p>
+                        <p>Posted on: <strong> ${`${dayjs(assignment.posted_on).format('MMM DD, YYYY') }`} </strong></p>
+                    </div>
+                </div>
+                <div class="container-middle">
+                    <div class="details">
+                    ${assignment.info}
+                    </div>
+                    <div class="files">
+                    ${
+                        assignment.files.map((file)=>{                        
+                            return `<a href="/uploads/${file}" download="${file.substring(9)}" class="link">
+                                ${getFileType(file)}
+                            </a>`
+                        }).join("")
+                    }
+                    </div>
+                </div>
+                <div class="container-bottom">
+                    ${is_teacher ? `<a href="/assignments/${assignment.assignment_id}/submissions"><button>View Submissions</button></a>` : `<a href="/assignments/${assignment.assignment_id}"><button>Upload Classwork</button></a>`}
+                </div>
+                </article>
+                `
+            })})
+        }
+        loadAssignment()
+        function getFileType(file){
+            if(["jpeg","png","gif","svg", "jpg"].includes(file.split('.').pop())){
+            return `<div class="assignments">
+                    <img src="/uploads/${file}" class="img">
+                    <button type="button" class="file-download-btn">${file.substring(9)}</button>
+                    </div>
+                    `
+            }else{
+                return `<div class="assignments">
+                        <img src="/images/file.svg"  class="img">
+                        <button type="button" class="file-download-btn"> ${file.substring(9)}</button>
+                        </div>
+                        `
+            }
+
+        }
+        
         FilePond.registerPlugin(
             FilePondPluginFileEncode,
             FilePondPluginImagePreview,
@@ -191,24 +230,65 @@
                 <label for="full_marks">Enter Full Marks:</label>
                 <input type="number" name="full_marks" id="full_marks" value="100">
                 <label for="date">Due date: </label>
-                <input type="date" name="date" id="date" required>
+                <input type="datetime-local" name="date" id="date" required>
                 `
-                let today = new Date().toISOString().split('T')[0];
-                document.getElementsByName("date")[0].setAttribute('min', today);
+                let today = new Date().toISOString().slice(0, 16);
+                document.getElementsByName("date")[0].min = today;
+                // let today = new Date().toISOString().split('T')[0];
+                // document.getElementsByName("date")[0].setAttribute('min', today);
             }else{
                 details.innerHTML = ""
             }
         })
         
+        function loadMaterial(){
+            fetch("/materials")
+            .then(res => res.json())
+            .then(materials => {
+                container.innerHTML = ""
+                materials.forEach((material)=>{
+                container.innerHTML += `
+                <article class="container-sub">
+                <div class="container-top">
+                    <div class="avatar">
+                        <img src="${material.avatar}" style="border-radius: 50%; height: 35px;">
+                        <h5>Posted by <mark>${material.first_name.charAt(0).toUpperCase() + material.first_name.slice(1)} ${material.last_name.charAt(0).toUpperCase() + material.last_name.slice(1)}</mark></h5>
+                    </div>
+                    <div class="marks-details">
+                        <p>Posted on: <strong> ${`${dayjs(material.posted_on).format('MMM DD, YYYY')}`} </strong></p>
+                    </div>
+                </div>
+                <div class="container-middle">
+                    <div class="details">
+                    ${material.info}
+                    </div>
+                    <div class="files">
+                    ${
+                        material.files.map((file)=>{                        
+                            return `<a href="/uploads/${file}" download="${file.substring(9)}" class="link">
+                                ${getFileType(file)}
+                            </a>`
+                        })
+                    }
+                    </div>
+                </div>
+                </article>
+                `
+            })})
+        }
+
+
+        am.addEventListener('change',(e)=>{
+            if(e.target.value == 'assignment'){
+                loadAssignment();
+            }else{
+                loadMaterial();
+            }
+        })
         function toggleModal() {
             modal.classList.toggle("show-modal");
         }
-
-        uploadform.addEventListener("submit", async(e) => {
-            // e.preventDefault();
-        })
-
-        createPost.addEventListener("click", toggleModal);
+        is_teacher ? createPost.addEventListener("click", toggleModal) : null;
         closeButton.addEventListener("click", toggleModal);
        
         </script>

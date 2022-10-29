@@ -7,21 +7,70 @@
     <title>Login</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/water.css@2/out/light.css">
     <script src="//cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+      .all-classes{
+        display: flex;
+        align-items: center;
+        justify-content: space-evenly;
+        width: 100%;
+        flex-wrap: wrap;
+      }
+      .all-classes > a{
+        width: 48%;
+        height: 200px;
+        margin-top: 10px;
+      }
+      .cls-btn{
+        width: 100%;
+        height: 100%;
+        font-size: 2rem;
+        text-transform: uppercase;
+        background-color: rgb(255, 240, 235);
+        border: 1.3px dashed;
+      }
+      .cls-btn:hover{
+        color: #fff;
+        background-color: rgb(140, 154, 255);
+      }
+      #nav{
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+      .profile h2{
+        margin-top: 2px;
+      }
+      #logout{
+        background-color: rgb(140, 255, 192);
+      }
+      #create{
+        background-color: rgb(156, 255, 182);
+      }
+      #join{
+        background-color: rgb(252, 142, 175);
+      }
+      .btns{
+        margin: 10px;
+      }
+    </style>
 </head>
 <body>
     <%- include('partials/navbar'); -%>
-    <form action="/logout" method="get">
-        <input type="submit" value="Logout">
-    </form>
+
+    <section class="btns">
+      <button id="create">Create Class</button>
+      <button id="join">Join Class</button>
+    </section>
+    <h3>Classes</h3>
     <hr>
-    <button id="create">Create Class</button>
-    <button id="join">Join Class</button>
-    <div>
-      <h3>Classes</h3>
+    <section class="all-classes">
       <% classes.forEach(function(cls){ %>
-        <button style="width: 300px;font-size: 2rem;"><a href="/classes/<%= cls.class_code%>">  <%= cls.class_name.charAt(0).toUpperCase() + cls.class_name.slice(1) %></a></button>
+        <a href="/classes/<%= cls.class_code%>">
+          <button class="cls-btn"> <%= cls.class_name.charAt(0).toUpperCase() + cls.class_name.slice(1) %>
+          </button>
+        </a>
       <% }); %>
-      </div>
+    </section>
 
 
     <script type="module">
