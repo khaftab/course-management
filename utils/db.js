@@ -1,19 +1,26 @@
 var mysql = require("mysql2");
+// var { createPool, escapeId } = require('mysql')
 // DB setup
-var connection = mysql.createConnection({
-  host: "localhost",
-  user: "root",
-  password: "thisisMySQL@root66",
+
+var connection = mysql.createPool({
+  host: process.env.MYSQL_HOST,
+  user: process.env.MYSQL_USER,
+  password: process.env.MYSQL_PASSWORD,
+  database: process.env.MYSQL_DATABASE,
+
+  // host: 'sql.freedb.tech',
+  // user: 'freedb_tommy21',
+  // password: '*wtYD5*g$vtx#T5',
+  // database: 'freedb_freedb21',
+  waitForConnections: true,
   multipleStatements: true,
   timezone: "+5:30"
 });
 
-connection.connect(function (err) {
-  if (err) throw err;
-  console.log("Connected!");
-  var sql = `
-    CREATE DATABASE IF NOT EXISTS course_management;
-    USE course_management;
+// connection.connect(function (err) {
+//   if (err) throw err;
+//   console.log("Connected!");
+var sql = `
     CREATE TABLE if not exists users(
       id int not null auto_increment,
       first_name varchar(50) not null,
@@ -89,11 +96,11 @@ CREATE TABLE if not exists material_files(
 )
  
  `;
-  connection.query(sql, function (err, result) {
-    if (err) throw err;
-    console.log("Tables created");
-  });
+connection.query(sql, function (err, result) {
+  if (err) throw err;
+  console.log("Tables created");
 });
+// });
 
 
 module.exports = connection;

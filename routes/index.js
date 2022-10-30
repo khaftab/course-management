@@ -50,8 +50,8 @@ router.post("/register", userMiddleware.validateRegister, (req, res, next) => {
             db.query(
               `INSERT INTO users (first_name, last_name, email, password, is_teacher, avatar)
                VALUES (${db.escape(
-                 req.body.first_name.toLowerCase()
-               )},${db.escape(req.body.last_name.toLowerCase())},${db.escape(
+                req.body.first_name.toLowerCase()
+              )},${db.escape(req.body.last_name.toLowerCase())},${db.escape(
                 req.body.email
               )}, ${db.escape(hash)}, ${db.escape(
                 req.body.is_teacher == "true" ? 1 : 0
@@ -147,8 +147,7 @@ router.get("/dashboard", userMiddleware.isLoggedIn, (req, res, next) => {
   db.query(
     `SELECT * FROM users WHERE id = ${db.escape(
       req.userData.userId
-    )};SELECT user_id, class_name, class_code FROM enrollment JOIN classes ON enrollment.class_id = classes.id WHERE user_id=${
-      req.userData.userId
+    )};SELECT user_id, class_name, class_code FROM enrollment JOIN classes ON enrollment.class_id = classes.id WHERE user_id=${req.userData.userId
     }`,
     (err, result) => {
       if (result) {
@@ -181,9 +180,8 @@ router.get("/logout", userMiddleware.isLoggedIn, (req, res) => {
  */
 
 router.post("/classes", userMiddleware.isLoggedIn, (req, res) => {
-  let sql = `INSERT INTO classes(class_code, class_name) VALUES("${
-    req.body.class_code
-  }", "${req.body.class_name.toLowerCase()}");`;
+  let sql = `INSERT INTO classes(class_code, class_name) VALUES("${req.body.class_code
+    }", "${req.body.class_name.toLowerCase()}");`;
   let class_id;
   db.query(sql, (err, result) => {
     if (err)
@@ -338,7 +336,7 @@ router.get("/assignments", userMiddleware.isLoggedIn, async (req, res) => {
       // console.log(rows)
       return res.json(rows);
     })
-    .catch((e)=>{
+    .catch((e) => {
       console.log(e)
     });
 });
@@ -365,7 +363,7 @@ router.get("/materials", userMiddleware.isLoggedIn, (req, res) => {
       }
       return res.json(rows);
     })
-    .catch((e)=>{
+    .catch((e) => {
       console.log(e)
     });
 });
@@ -387,7 +385,7 @@ router.get("/assignments/:id", userMiddleware.isLoggedIn, async (req, res) => {
     .catch((e) => {
       console.log(e);
     });
-  
+
   const { id, info, due_date, full_marks } = assignment;
   sql = `SELECT obtained_marks FROM submissions WHERE user_id=${req.userData.userId} and assignment_id=${req.params.id}`;
   await db.promise()
@@ -397,9 +395,9 @@ router.get("/assignments/:id", userMiddleware.isLoggedIn, async (req, res) => {
       res.render("assignment", {
         id,
         info,
-        due_date: dayjs(due_date) ,
+        due_date: dayjs(due_date),
         full_marks,
-        obtained_marks: rows.length? rows[0].obtained_marks: 0
+        obtained_marks: rows.length ? rows[0].obtained_marks : 0
       });
     }).catch((e) => {
       console.log(e);
@@ -471,10 +469,10 @@ router.get(
       .query(sql)
       .then(([rows, fields]) => {
         console.log(rows.length)
-        if(rows.length){
+        if (rows.length) {
           res.render("submissions", { rows, due_date: dayjs(rows[0].due_date) });
-        }else{
-          res.render("submissions", { rows , due_date: null});
+        } else {
+          res.render("submissions", { rows, due_date: null });
         }
       })
       .catch((e) => {
