@@ -82,6 +82,15 @@
         #postbtn, #back-btn{
             background-color: rgb(140, 255, 192);
         }
+        @media only screen and (max-width: 700px) {
+            body{
+                padding: 30px !important;
+            }
+            .modal-content {
+                width: 80vw;
+                padding-bottom: 2.5rem;
+            }
+        }
     </style>
 </head>
 <body>
@@ -132,6 +141,7 @@
             </select>
             <div id="details">
             </div>
+            <input type="hidden" name="class_code" value="<%= class_code %>">
             <button type="button" class="close-button">Close</button>
             <button type="submit" id="postbtn">Post</button>
         </form>
@@ -191,7 +201,10 @@
                 </div>
                 </article>
                 `
-            })})
+            })}).catch((error) => {
+                console.error('Error:', error);
+                location.reload()
+            })
         }
         loadAssignment()
         function getFileType(file){
@@ -234,8 +247,7 @@
                 `
                 let today = new Date().toISOString().slice(0, 16);
                 document.getElementsByName("date")[0].min = today;
-                // let today = new Date().toISOString().split('T')[0];
-                // document.getElementsByName("date")[0].setAttribute('min', today);
+
             }else{
                 details.innerHTML = ""
             }
@@ -255,7 +267,7 @@
                         <h5>Posted by <mark>${material.first_name.charAt(0).toUpperCase() + material.first_name.slice(1)} ${material.last_name.charAt(0).toUpperCase() + material.last_name.slice(1)}</mark></h5>
                     </div>
                     <div class="marks-details">
-                        <p>Posted on: <strong> ${`${dayjs(material.posted_on).format('MMM DD, YYYY')}`} </strong></p>
+                        <p>Posted on: <strong> ${`${dayjs(material.posted_on)}`} </strong></p>
                     </div>
                 </div>
                 <div class="container-middle">
@@ -274,14 +286,19 @@
                 </div>
                 </article>
                 `
-            })})
+            })}).catch((error) => {
+                console.error('Error:', error);
+                location.reload()
+            })
         }
 
 
         am.addEventListener('change',(e)=>{
             if(e.target.value == 'assignment'){
+                location.reload()
                 loadAssignment();
             }else{
+                e.target.value = "material"
                 loadMaterial();
             }
         })

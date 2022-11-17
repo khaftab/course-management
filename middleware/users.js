@@ -5,49 +5,39 @@ module.exports = {
   validateRegister: (req, res, next) => {
     // username min length 3
     if (!req.body.first_name || req.body.first_name.length < 3) {
-      return res.status(400).send({
-        msg: "Please enter a username with min. 3 chars",
-      });
+      res.status(400);
+      return res.send(`<script>alert("Please enter a username with min. 3 chars");  history.back()</script>`)
     }
 
-    if (!req.body.email || req.body.email.length < 10) {
-      return res.status(400).send({
-        msg: "Please enter a valid email",
-      });
+    if (!req.body.email || req.body.email.length < 5) {
+      res.status(400);
+      return res.send(`<script>alert("Please enter a valid email");  history.back()</script>`)
     }
 
     // password min 6 chars
     if (!req.body.password || req.body.password.length < 6) {
-      return res.status(400).send({
-        msg: "Please enter a password with min. 6 chars",
-      });
+      res.status(400);
+      return res.send(`<script>alert("Please enter a password with min. 6 chars");  history.back()</script>`)
     }
     next();
   },
-  isLoggedIn: (req, res, next) => {
+  isLoggedIn : async (req, res, next) => {
     const token = req.cookies.jwt;
-    if (token) {
-      jwt.verify(token, "SECRETKEY", async (err, decoded) => {
-        if (err) {
-          res.locals.user = null;
-          return res.status(401).send({
-            msg: "Your session is not valid!",
-          });
-        } else {
-          req.userData = decoded;
-          db.query(
-            `SELECT * FROM users WHERE id = ${db.escape(req.userData.userId)}`,
-            (err, result) => {
-              if (result) {
-                res.locals.user = result[0];
-              }
-            }
-          );
-
-          next();
-        }
-      });
-    } else {
+    if(token){
+      try {
+        const decoded = await jwt.verify(token, "fvbghvggtughrtgjvfbvhff")
+        req.userData = decoded;
+        const[user] = await db.execute('SELECT * FROM `users` WHERE `id` = ?',[req.userData.userId]);
+        const {first_name, last_name, id, email, avatar} = user[0]
+        if(user) res.locals.user = {first_name, last_name, id, email, avatar};
+        next()
+      } catch (error) {
+        res.status(400);
+        res.redirect("/login");
+      }
+    }else if(token == undefined){
+      return res.redirect("/login");
+    }else{
       res.locals.user = null;
       next();
     }

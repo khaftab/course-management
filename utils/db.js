@@ -1,44 +1,44 @@
-var mysql = require("mysql2");
-// DB setup
-var connection = mysql.createConnection({
+const mysql = require("mysql2");
+require("dotenv").config();
+
+const connection = mysql.createPool({
   host: "localhost",
   user: "root",
-  password: "thisisMySQL@root66",
+  password: process.env.DB_PASSWORD,
   multipleStatements: true,
-  timezone: "+5:30"
+  timezone: "+5:30",
+  database: process.env.DB_NAME,
+  waitForConnections: true,
+  connectionLimit: 10,
+  queueLimit: 0
 });
 
-connection.connect(function (err) {
-  if (err) throw err;
-  console.log("Connected!");
-  var sql = `
-    CREATE DATABASE IF NOT EXISTS course_management;
-    USE course_management;
-    CREATE TABLE if not exists users(
-      id int not null auto_increment,
-      first_name varchar(50) not null,
-      last_name varchar(50) not null,
-      email varchar(100) unique not null,
-      password varchar(255) not null,
-      is_teacher boolean,
-      avatar varchar(255) not null,
-      primary key(id)
-    );
-    ALTER TABLE users AUTO_INCREMENT = 1000;
-    CREATE TABLE if not exists classes(
-      id int not null auto_increment,
-      class_name varchar(100) not null unique,
-      class_code varchar(10) not null unique,
-      primary key(id) 
-   );
-   CREATE TABLE if not exists enrollment(
-    id int not null auto_increment,
-    user_id int,
-    class_id int,
-    FOREIGN KEY (user_id) REFERENCES users(id),
-    FOREIGN KEY (class_id) REFERENCES classes(id),
-    primary key(id),
-    CONSTRAINT UC_enrollment UNIQUE(user_id, class_id)
+let sql = `
+CREATE TABLE if not exists users(
+  id int not null auto_increment,
+  first_name varchar(50) not null,
+  last_name varchar(50) not null,
+  email varchar(100) unique not null,
+  password varchar(255) not null,
+  is_teacher boolean,
+  avatar varchar(255) not null,
+  primary key(id)
+);
+ALTER TABLE users AUTO_INCREMENT = 1000;
+CREATE TABLE if not exists classes(
+  id int not null auto_increment,
+  class_name varchar(100) not null,
+  class_code varchar(10) not null unique,
+  primary key(id)
+);
+  CREATE TABLE if not exists enrollment(
+  id int not null auto_increment,
+  user_id int,
+  class_id int,
+  FOREIGN KEY (user_id) REFERENCES users(id),
+  FOREIGN KEY (class_id) REFERENCES classes(id),
+  primary key(id),
+  CONSTRAINT UC_enrollment UNIQUE(user_id, class_id)
  );
  CREATE TABLE if not exists assignments(
   id int not null AUTO_INCREMENT,
@@ -86,14 +86,18 @@ CREATE TABLE if not exists material_files(
   primary key(id),
   material_id int,
   FOREIGN KEY (material_id) REFERENCES materials(id)
-)
- 
- `;
-  connection.query(sql, function (err, result) {
-    if (err) throw err;
-    console.log("Tables created");
-  });
-});
+);`;
 
+try {
+  connection.query(sql,
+    function(err, results) {
+      if(results)
+        console.log(`tables are created`)
+      if(err) throw err
+    }
+  );
+} catch (error) {
+  console.log(`tables are not created`)
+}
 
-module.exports = connection;
+module.exports = connection.promise()

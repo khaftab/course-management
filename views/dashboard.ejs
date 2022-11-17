@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login</title>
+    <title>Dashboard</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/water.css@2/out/light.css">
     <script src="//cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
@@ -19,6 +19,12 @@
         width: 48%;
         height: 200px;
         margin-top: 10px;
+        text-decoration: none;
+      }
+      @media only screen and (max-width: 700px) {
+        .all-classes > a{
+          width: 100%;
+        }   
       }
       .cls-btn{
         width: 100%;
@@ -27,6 +33,10 @@
         text-transform: uppercase;
         background-color: rgb(255, 240, 235);
         border: 1.3px dashed;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 10px;
       }
       .cls-btn:hover{
         color: #fff;
@@ -66,8 +76,8 @@
     <section class="all-classes">
       <% classes.forEach(function(cls){ %>
         <a href="/classes/<%= cls.class_code%>">
-          <button class="cls-btn"> <%= cls.class_name.charAt(0).toUpperCase() + cls.class_name.slice(1) %>
-          </button>
+          <div class="cls-btn"> <%= cls.class_name.charAt(0).toUpperCase() + cls.class_name.slice(1) %>
+          </div>
         </a>
       <% }); %>
     </section>

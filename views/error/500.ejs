@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>404 page not found</title>
+    <style>
+        body{
+        background-image: url(https://cdn.dribbble.com/users/285475/screenshots/2083086/dribbble_1.gif);
+        height: 100vh;
+        background-position: center;
+        background-repeat: no-repeat;
+        background-size: cover;
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        overflow: hidden;
+        }
+        h1{
+            font-size: 5rem;
+            text-align: center;
+        }
+        h3{
+            text-align: center;
+            font-size: 1.3rem;
+        }
+        button{
+            display: block;
+            margin: 0 auto;
+            width: 100px;
+            background-color: rgba(75, 164, 31, 0.828);
+            text-align: center;
+            padding: 1rem;
+            text-decoration: none;
+            color: #fff;
+            border: none;
+        }
+        button:hover{
+          cursor: pointer;
+        }
+    </style>
+  </head>
+  <body>
+    <div class="contant_box_404">
+        <h1><%= statusCode %> </h1>
+        <h3><%= message %> </h3>
+        <button onclick="history.back()">Go to Back</button>
+    </div>
+  </body>
+</html>

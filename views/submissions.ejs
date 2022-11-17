@@ -81,6 +81,21 @@
       #marks{
         color: rgb(249, 169, 143);
       }
+      li{
+        width: 800px;
+      }
+      .back-btn{
+        margin: 1rem 0;
+      }
+      @media only screen and (max-width: 850px) {
+        .listing{
+            overflow-x: scroll;
+        }
+        .top{
+          flex-wrap: wrap;
+      }
+
+      }
     </style>
   </head>
   <body>   
@@ -89,10 +104,10 @@
     <hr>
     <main>
       <section class="top">
-        <p>Full marks: <b><%= rows.length? rows[0].full_marks:"" %> </b></p>
+        <p>Full marks: <b><%= full_marks %> </b></p>
         <p>Due Date: <b><%= due_date ? due_date: "" %> </b></p>
       </section>
-      <section>
+      <section class="listing">
         <ul>
           <% rows.forEach(row => { %>
           <li>
@@ -115,7 +130,7 @@
           <% }) %> 
         </ul>
       </section>
-      <button onclick="history.back()">< Go back</button>
+      <button class="back-btn" onclick="history.back()">< Go back</button>
     </main>
   </body>
   <script>
