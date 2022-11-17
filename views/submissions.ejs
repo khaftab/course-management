@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/water.css@2/out/light.css" />
+    <title>Teacher section</title>
+    <style>
+      input[type="number"]::-webkit-outer-spin-button,
+      input[type="number"]::-webkit-inner-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+      }
+
+      input[type="number"] {
+        -moz-appearance: textfield;
+      }
+
+      li {
+        list-style: none;
+        margin: 10px auto;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+      }
+
+      ul {
+        margin-top: 20px;
+        padding: 15px 0;
+      }
+
+      .grade-form {
+        display: flex;
+        align-items: center;
+      }
+
+      .grade-form input {
+        max-width: 50px;
+        margin-left: 10px;
+        margin-bottom: 0;
+      }
+
+      .name-container {
+        display: flex;
+        align-items: center;
+      }
+
+      .name-container span {
+        margin-right: 10px;
+      }
+
+      .list-container {
+        padding: 3px 15px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+
+      button {
+        background-color: rgb(140, 255, 192);
+        margin-bottom: 0px;
+      }
+      /* partial nav */
+      #nav{
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+      }
+      .profile h2{
+          margin-top: 2px;
+      }
+      #logout{
+          background-color: rgb(140, 255, 192);
+      }
+      /* end of nav partial */
+      .top{
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+      #marks{
+        color: rgb(249, 169, 143);
+      }
+      li{
+        width: 800px;
+      }
+      .back-btn{
+        margin: 1rem 0;
+      }
+      @media only screen and (max-width: 850px) {
+        .listing{
+            overflow-x: scroll;
+        }
+        .top{
+          flex-wrap: wrap;
+      }
+
+      }
+    </style>
+  </head>
+  <body>   
+    <%- include('partials/navbar'); -%>
+    <h1>All Submissions</h1>
+    <hr>
+    <main>
+      <section class="top">
+        <p>Full marks: <b><%= full_marks %> </b></p>
+        <p>Due Date: <b><%= due_date ? due_date: "" %> </b></p>
+      </section>
+      <section class="listing">
+        <ul>
+          <% rows.forEach(row => { %>
+          <li>
+            <div class="list-container">
+              <div class="name-container">
+                <img src=<%= row.avatar %> style="border-radius: 50%; height: 30px;margin-right: 5px">
+                <p><%= `${row.first_name.charAt(0).toUpperCase() + row.first_name.slice(1)} ${row.last_name.charAt(0).toUpperCase() + row.last_name.slice(1)}`%> </p>
+              </div>
+              <div id="marks"><%= row.obtained_marks %> </div>
+              <form class="grade-form"  onsubmit="return updateMarks(`<%= row.id %>`)">
+                <label for="Grade">Grade</label>
+                <input type="number" id="<%= row.id %>" class="grade-input" max="<%= row.full_marks %>" min="0" step=".01"/>
+                <a href="/uploads/<%= row.file_name %> " download=<%= row.file_name.substring(9) %> class="link">
+                  <button type="button">Download File</button>
+                </a>
+                <button type="submit">Submit</button>
+              </form>
+            </div>
+          </li>
+          <% }) %> 
+        </ul>
+      </section>
+      <button class="back-btn" onclick="history.back()">< Go back</button>
+    </main>
+  </body>
+  <script>
+    function updateMarks(userId){
+      const grade = document.getElementById(userId).value
+      const putMethod = {
+        method: 'PUT', 
+        headers: {
+          'Content-type': 'application/json; charset=UTF-8' 
+        },
+        body: JSON.stringify({
+          userId,
+          grade
+        }) 
+      }
+      console.log({userId,grade})
+      fetch("/assignments/update", putMethod)
+      .then(response => response.json())
+      .then(data => {
+        if(data.msg == "success"){
+          location.reload()
+        }
+      }) 
+      .catch(err => console.log(err)) 
+      return false
+    }
+  </script>
+</html>

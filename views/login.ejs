@@ -6,16 +6,49 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/water.css@2/out/light.css">
+    <style>
+        body{
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0 1rem;
+            max-width: 100%;
+            padding: 0;
+        }
+        .container{
+            border: 2px dashed rgb(175, 175, 175);
+            padding: 40px;
+            border-radius: 10px;
+            margin: 0 auto;
+            box-shadow: 0px 3px 5px rgb(160, 160, 160);
+            width: 300px;
+        }
+        #submit-btn{
+            background-color: rgb(140, 255, 192);
+        }
+        input{
+            width: 100%;
+            padding: 12px 20px;
+            margin: 8px 0;
+            display: inline-block;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+    </style>
 </head>
 <body>
-    <h1>Log In</h1>
-    <form action="/login" method="post">
-        <label for="email">Email:</label>
-        <input type="email" name="email" required placeholder="john@example.com" id="email">
-        <label for="password">Password:</label>
-        <input type="password" name="password" id="password">
-        <input type="submit">
-    </form>
-    <p>New member? <a href="/register">Register</a>.</p>
+    <main class="container">
+        <h1>Log In</h1>
+        <form action="/login" method="post">
+            <label for="email">Email:</label>
+            <input type="email" name="email" required placeholder="john@example.com" id="email">
+            <label for="password">Password:</label>
+            <input type="password" name="password" id="password" placeholder="6 character min" required>
+            <input id="submit-btn" type="submit">
+        </form>
+        <p>New member? <a href="/register">Register</a>.</p>
+    </main>
 </body>
 </html>

@@ -1,2 +1,9 @@
-<img src=<%= user.avatar %> style="border-radius: 50%; height: 60px;">
-<h1>Welcome, <%= user.first_name.charAt(0).toUpperCase() + user.first_name.slice(1) %>!</h1>
+<nav id="nav">
+    <div class="profile">
+        <a href="/dashboard"><img src=<%= user.avatar %> style="border-radius: 50%; height: 60px;"></a>
+        <h2>Welcome, <%= user.first_name.charAt(0).toUpperCase() + user.first_name.slice(1) %>!</h2>
+    </div>
+    <form action="/logout" method="get">
+        <input type="submit" value="Logout" id="logout">
+    </form>
+</nav>

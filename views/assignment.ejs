@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/water.css@2/out/light.css" />
+    <link href="/stylesheets/filepond.css" rel="stylesheet" />
+    <link href="/stylesheets/filepond-plugin-image-preview.css" rel="stylesheet" />
+    <title>Student Assignment</title>
+    <style>
+      code {
+        background-color: #1b2438;
+        color: rgb(255, 255, 255);
+      } 
+      .assignment-details {
+        margin-top: 20px;
+      }
+      .file-upload-section {
+        max-width: 500px;
+        margin-top: 45px;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        padding: 7px 15px;
+        margin-left: auto;
+        margin-right: auto;
+        margin-bottom: 80px;
+      }
+      .filepond--credits {
+        display: none;
+      }
+      .filepond--root {
+        max-width: 500px;
+        max-height: 250px;
+        margin-top: 9px;
+      }
+      /* partial nav */
+      #nav{
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+      }
+      .profile h2{
+          margin-top: 2px;
+      }
+      #logout, #back{
+          background-color: rgb(140, 255, 192);
+      }
+      /* end of nav partial */
+      .marks{
+        width: 100%;
+        height: 100px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .marks span{
+        color: orange;
+      }
+      .marks h3{
+        border: 1px solid rgb(58, 69, 58);
+        padding: 20px;
+      }
+      main{
+        min-height: 80vh;
+      }
+      .file-btn{
+        display: block;
+        width: 100%;
+        height: 60px;
+        border-radius: 50px;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <%- include('partials/navbar'); -%>
+      <span>Due date: <b><%= due_date %> </b></span>
+      <hr />
+      <section class="assignment-details">
+        <%- info %> 
+      </section>
+      <% if (!file_name) { %>
+        <section class="file-upload-section">
+          <h3>Your Work</h3>
+          <form action="/assignments/<%=id%>/submissions" method="post" id="uploadform">
+            <label for="drag-drop-area">Upload File:</label>
+            <input
+              type="file"
+              name="files"
+              id="drag-drop-area"
+              multiple
+              data-allow-reorder="true"
+              data-max-file-size="5MB"
+              required
+            />
+            <button style="width: 100%;background-color: rgb(140, 255, 192)">Submit</button>
+          </form>
+        </section>
+      <% } else {%>
+        <button disabled class="file-btn"><%= file_name %></button>
+      <% } %> 
+      <% if (obtained_marks) { %>
+        <section class="marks">
+        <h3>You Got: <span><%= obtained_marks %> / <%= full_marks %></span></h3>
+        </section>
+      <% } %>
+    </main>
+    <button id="back" onclick="history.back()">< Go back</button>
+  </body>
+  <script src="/javascripts/filepond-plugin-image-resize.min.js"></script>
+  <script src="/javascripts/filepond-plugin-file-encode.min.js"></script>
+  <script src="/javascripts/filepond-plugin-image-crop.min.js"></script>
+  <script src="/javascripts/filepond-plugin-file-validate-size.min.js"></script>
+  <script src="/javascripts/filepond-plugin-image-preview.min.js"></script>
+  <script src="/javascripts/filepond.min.js"></script>
+  <script>
+    const inputElement = document.getElementById("drag-drop-area");
+    const uploadform = document.getElementById("uploadform");
+    FilePond.registerPlugin(
+      FilePondPluginFileEncode,
+      FilePondPluginImagePreview,
+      FilePondPluginFileValidateSize,
+      FilePondPluginImageResize,
+      FilePondPluginImageCrop
+    );
+    const pond = FilePond.create(inputElement);
+    pond.setOptions({
+      maxFiles: 1,
+      imageCropAspectRatio: "4:3",
+    });
+  </script>
+</html>
