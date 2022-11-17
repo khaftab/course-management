@@ -2,8 +2,8 @@ const mysql = require("mysql2");
 require("dotenv").config();
 
 const connection = mysql.createPool({
-  host: "localhost",
-  user: "root",
+  host: process.env.DB_HOST,
+  user: process.env.DB_USER,
   password: process.env.DB_PASSWORD,
   multipleStatements: true,
   timezone: "+5:30",
@@ -90,10 +90,10 @@ CREATE TABLE if not exists material_files(
 
 try {
   connection.query(sql,
-    function(err, results) {
-      if(results)
+    function (err, results) {
+      if (results)
         console.log(`tables are created`)
-      if(err) throw err
+      if (err) throw err
     }
   );
 } catch (error) {
