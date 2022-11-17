@@ -36,5 +36,5 @@ app.use("/dashboard", dashboardRouter);
 app.get("*", (req, res)=> res.render("error/404"));
 
 app.use(errorHandler);
-const port = process.env.PORT;
+const port = process.env.PORT || 4000;
 app.listen(port, () => console.log(`App listening at port ${port}`));
