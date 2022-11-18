@@ -33,7 +33,7 @@ app.use("/classes", classroomRouter);
 app.use("/materials", materialsRouter);
 app.use("/assignments", assignmentsRouter);
 app.use("/dashboard", dashboardRouter);
-app.get("*", (req, res)=> res.render("error/404"));
+app.get("*", (req, res) => res.render("error/404"));
 
 app.use(errorHandler);
 const port = process.env.PORT || 4000;
